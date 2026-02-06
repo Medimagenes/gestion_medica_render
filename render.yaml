@@ -1,0 +1,72 @@
+services:
+  # Web + workers + scheduler + websocket (todo en uno)
+  - type: web
+    name: gestion-medica
+    runtime: docker
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: SITE_NAME
+        value: tu-dominio.com
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DB_ROOT_PASSWORD
+        sync: false
+
+      - key: DB_HOST
+        fromService:
+          type: pserv
+          name: mariadb
+          property: host
+      - key: DB_PORT
+        fromService:
+          type: pserv
+          name: mariadb
+          property: port
+
+      - key: REDIS_CACHE
+        fromService:
+          type: keyvalue
+          name: redis-cache
+          property: connectionString
+      - key: REDIS_QUEUE
+        fromService:
+          type: keyvalue
+          name: redis-queue
+          property: connectionString
+
+      - key: SOCKETIO_PORT
+        value: "9000"
+
+    disk:
+      name: sites
+      mountPath: /home/frappe/frappe-bench/sites
+      sizeGB: 10
+
+  # MariaDB/MySQL privado con disco
+  - type: pserv
+    name: mariadb
+    runtime: image
+    image:
+      url: mariadb:10.11
+    envVars:
+      - key: MARIADB_ROOT_PASSWORD
+        sync: false
+      - key: MARIADB_DATABASE
+        value: frappe
+    disk:
+      name: mariadb-data
+      mountPath: /var/lib/mysql
+      sizeGB: 20
+
+  # Redis cache
+  - type: keyvalue
+    name: redis-cache
+    plan: starter
+    ipAllowList: [] # solo interno
+
+  # Redis queue
+  - type: keyvalue
+    name: redis-queue
+    plan: starter
+    ipAllowList: [] # solo interno
