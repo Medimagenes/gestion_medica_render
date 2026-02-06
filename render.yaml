@@ -1,18 +1,32 @@
 services:
-  # Web + workers + scheduler + websocket (todo en uno)
+  # Servicio Web Principal (Frappe + Workers)
   - type: web
     name: gestion-medica
     runtime: docker
-    plan: starter
+    plan: starter # O el plan que prefieras
     healthCheckPath: /
     envVars:
       - key: SITE_NAME
-        value: tu-dominio.com
+        value: gestion.tu-dominio.com
       - key: ADMIN_PASSWORD
         sync: false
       - key: DB_ROOT_PASSWORD
         sync: false
-
+      # Configuración S3 (AWS)
+      - key: S3_ENABLE
+        value: "1"
+      - key: S3_KEY
+        sync: false
+      - key: S3_SECRET
+        sync: false
+      - key: S3_BUCKET
+        value: tu-bucket-frappe
+      - key: S3_REGION
+        value: us-east-1
+      - key: S3_ENDPOINT # Opcional si usas algo distinto a AWS standard
+        value: https://s3.amazonaws.com
+      
+      # Conexiones Internas
       - key: DB_HOST
         fromService:
           type: pserv
@@ -23,7 +37,6 @@ services:
           type: pserv
           name: mariadb
           property: port
-
       - key: REDIS_CACHE
         fromService:
           type: keyvalue
@@ -34,16 +47,14 @@ services:
           type: keyvalue
           name: redis-queue
           property: connectionString
-
-      - key: SOCKETIO_PORT
-        value: "9000"
-
+    
+    # IMPORTANTE: Render requiere un disco para los assets locales y logs si no quieres perderlos
     disk:
-      name: sites
+      name: frappe-sites
       mountPath: /home/frappe/frappe-bench/sites
       sizeGB: 10
 
-  # MariaDB/MySQL privado con disco
+  # Base de Datos MariaDB
   - type: pserv
     name: mariadb
     runtime: image
@@ -54,19 +65,19 @@ services:
         sync: false
       - key: MARIADB_DATABASE
         value: frappe
+      - key: MARIADB_CHARACTER_SET_SERVER
+        value: utf8mb4
+      - key: MARIADB_COLLATION_SERVER
+        value: utf8mb4_unicode_ci
     disk:
       name: mariadb-data
       mountPath: /var/lib/mysql
       sizeGB: 20
 
-  # Redis cache
+  # Redis para Cache y Queues
   - type: keyvalue
     name: redis-cache
     plan: starter
-    ipAllowList: [] # solo interno
-
-  # Redis queue
   - type: keyvalue
     name: redis-queue
     plan: starter
-    ipAllowList: [] # solo interno

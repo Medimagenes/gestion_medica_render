@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  frappe:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SITE_NAME=medimagenes.local
+      - ADMIN_PASSWORD=UltraSecure2026
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_ROOT_USERNAME=root
+      - DB_ROOT_PASSWORD=frappe
+      - REDIS_CACHE=redis://redis:6379/0
+      - REDIS_QUEUE=redis://redis:6379/1
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: mariadb:10.11
+    environment:
+      - MARIADB_ROOT_PASSWORD=frappe
+      - MARIADB_DATABASE=frappe
+    volumes:
+      - db_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  frappe_sites:
+  db_data:
