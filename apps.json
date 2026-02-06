@@ -1,0 +1,8 @@
+[
+  { "url": "https://github.com/frappe/frappe", "branch": "version-15" },
+  { "url": "https://github.com/frappe/erpnext", "branch": "version-15" },
+  {
+    "url": "https://github.com/Medimagenes/gestion_medica_render",
+    "branch": "main"
+  }
+]
