@@ -8,9 +8,15 @@ SITE_NAME="${SITE_NAME:-site1.local}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin}"
 DB_HOST="${DB_HOST:?DB_HOST requerido}"
 DB_PORT="${DB_PORT:-3306}"
+DB_ROOT_USERNAME="${DB_ROOT_USERNAME:-root}"
 DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD requerido}"
+
+# Redis URLs (Render: usa el Internal Key Value URL)
 REDIS_CACHE="${REDIS_CACHE:?REDIS_CACHE requerido}"
 REDIS_QUEUE="${REDIS_QUEUE:?REDIS_QUEUE requerido}"
+# opcional; si no lo pones, se reutiliza REDIS_QUEUE
+REDIS_SOCKETIO="${REDIS_SOCKETIO:-$REDIS_QUEUE}"
+
 SOCKETIO_PORT="${SOCKETIO_PORT:-9000}"
 
 # Asegura apps.txt (útil para tooling de frappe)
@@ -21,6 +27,7 @@ bench set-config -g db_host "$DB_HOST"
 bench set-config -gp db_port "$DB_PORT"
 bench set-config -g redis_cache "$REDIS_CACHE"
 bench set-config -g redis_queue "$REDIS_QUEUE"
+bench set-config -g redis_socketio "$REDIS_SOCKETIO"
 bench set-config -gp socketio_port "$SOCKETIO_PORT"
 
 # Crear site si no existe aún
@@ -28,7 +35,7 @@ if [ ! -f "sites/${SITE_NAME}/site_config.json" ]; then
   echo "==> Creando site ${SITE_NAME}"
   bench new-site "$SITE_NAME" \
     --admin-password "$ADMIN_PASSWORD" \
-    --db-root-username root \
+    --db-root-username "$DB_ROOT_USERNAME" \
     --db-root-password "$DB_ROOT_PASSWORD" \
     --db-host "$DB_HOST" \
     --db-port "$DB_PORT" \
